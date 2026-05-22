@@ -1,0 +1,335 @@
+﻿@page "/productos"
+@rendermode InteractiveServer
+
+@using LAB13_Ejer1.Models
+@using LAB13_Ejer1.Services
+@inject JsonService jsonService
+
+<h3>Registro de Productos</h3>
+
+<div>
+    <label>Tipo de producto:</label>
+    <select @bind="tipoProducto">
+        <option value="">Seleccione</option>
+        <option value="Alimento">Alimento</option>
+        <option value="Electronico">Electrónico</option>
+        <option value="Libro">Libro</option>
+    </select>
+</div>
+
+<br />
+
+<h4>Datos generales del producto</h4>
+
+<div>
+    <label>Código del producto:</label>
+    <input @bind="codigoProducto" />
+</div>
+
+<div>
+    <label>Nombre del producto:</label>
+    <input @bind="nombreProducto" />
+</div>
+
+<div>
+    <label>Descripción:</label>
+    <input @bind="descripcionProducto" />
+</div>
+
+<div>
+    <label>Precio de compra:</label>
+    <input type="number" step="0.01" @bind="precioCompra" />
+</div>
+
+<div>
+    <label>Precio de venta:</label>
+    <input type="number" step="0.01" @bind="precioVenta" />
+</div>
+
+@if (tipoProducto == "Alimento")
+{
+    <h4>Datos del alimento</h4>
+
+    <div>
+        <label>Fecha de vencimiento:</label>
+        <input type="date" @bind="fechaVencimiento" />
+    </div>
+
+    <div>
+        <label>Unidad de medida:</label>
+        <input @bind="unidadMedida" />
+    </div>
+}
+
+@if (tipoProducto == "Electronico")
+{
+    <h4>Datos del electrónico</h4>
+
+    <div>
+        <label>Tiempo de garantía:</label>
+        <input type="number" @bind="tiempoGarantia" />
+    </div>
+
+    <div>
+        <label>Voltaje que utiliza:</label>
+        <input @bind="voltajeUtiliza" />
+    </div>
+}
+
+@if (tipoProducto == "Libro")
+{
+    <h4>Datos del libro</h4>
+
+    <div>
+        <label>Editorial:</label>
+        <input @bind="editorial" />
+    </div>
+
+    <div>
+        <label>Categoría:</label>
+        <input @bind="categoria" />
+    </div>
+
+    <div>
+        <label>Autor:</label>
+        <input @bind="autor" />
+    </div>
+}
+
+<br />
+
+<button @onclick="GuardarProducto">Guardar producto</button>
+<button @onclick="LimpiarCampos">Limpiar</button>
+
+<hr />
+
+<h3>Listado de productos ingresados</h3>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Tipo</th>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio compra</th>
+            <th>Precio venta</th>
+            <th>Fecha vencimiento</th>
+            <th>Unidad</th>
+            <th>Garantía</th>
+            <th>Voltaje</th>
+            <th>Editorial</th>
+            <th>Categoría</th>
+            <th>Autor</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var producto in listaProductos)
+        {
+            <tr>
+                <td>@producto.TipoProducto</td>
+                <td>@producto.CodigoProducto</td>
+                <td>@producto.NombreProducto</td>
+                <td>@producto.DescripcionProducto</td>
+                <td>@producto.PrecioCompra</td>
+                <td>@producto.PrecioVenta</td>
+
+                <td>
+                    @if (producto.TipoProducto == "Alimento")
+                    {
+                        @producto.FechaVencimiento.ToShortDateString()
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Alimento")
+                    {
+                        @producto.UnidadMedida
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Electronico")
+                    {
+                        @producto.TiempoGarantia
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Electronico")
+                    {
+                        @producto.VoltajeUtiliza
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Libro")
+                    {
+                        @producto.Editorial
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Libro")
+                    {
+                        @producto.Categoria
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+
+                <td>
+                    @if (producto.TipoProducto == "Libro")
+                    {
+                        @producto.Autor
+                    }
+                    else
+                    {
+                        @("-")
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    string ruta = "productos.json";
+
+    List<ProductoRegistro> listaProductos = new List<ProductoRegistro>();
+
+    string tipoProducto = string.Empty;
+
+    string codigoProducto = string.Empty;
+    string nombreProducto = string.Empty;
+    string descripcionProducto = string.Empty;
+    double precioCompra;
+    double precioVenta;
+
+    DateTime fechaVencimiento = DateTime.Now;
+    string unidadMedida = string.Empty;
+
+    int tiempoGarantia;
+    string voltajeUtiliza = string.Empty;
+
+    string editorial = string.Empty;
+    string categoria = string.Empty;
+    string autor = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        listaProductos = jsonService.Leer<ProductoRegistro>(ruta);
+    }
+
+    void GuardarProducto()
+    {
+        ProductoRegistro nuevoProducto = new ProductoRegistro();
+
+        nuevoProducto.TipoProducto = tipoProducto;
+        nuevoProducto.CodigoProducto = codigoProducto;
+        nuevoProducto.NombreProducto = nombreProducto;
+        nuevoProducto.DescripcionProducto = descripcionProducto;
+        nuevoProducto.PrecioCompra = precioCompra;
+        nuevoProducto.PrecioVenta = precioVenta;
+
+        if (tipoProducto == "Alimento")
+        {
+            Alimento alimento = new Alimento();
+
+            alimento.CodigoProducto = codigoProducto;
+            alimento.NombreProducto = nombreProducto;
+            alimento.DescripcionProducto = descripcionProducto;
+            alimento.PrecioCompra = precioCompra;
+            alimento.PrecioVenta = precioVenta;
+            alimento.FechaVencimiento = fechaVencimiento;
+            alimento.UnidadMedida = unidadMedida;
+
+            nuevoProducto.FechaVencimiento = alimento.FechaVencimiento;
+            nuevoProducto.UnidadMedida = alimento.UnidadMedida;
+        }
+
+        if (tipoProducto == "Electronico")
+        {
+            Electronico electronico = new Electronico();
+
+            electronico.CodigoProducto = codigoProducto;
+            electronico.NombreProducto = nombreProducto;
+            electronico.DescripcionProducto = descripcionProducto;
+            electronico.PrecioCompra = precioCompra;
+            electronico.PrecioVenta = precioVenta;
+            electronico.TiempoGarantia = tiempoGarantia;
+            electronico.VoltajeUtiliza = voltajeUtiliza;
+
+            nuevoProducto.TiempoGarantia = electronico.TiempoGarantia;
+            nuevoProducto.VoltajeUtiliza = electronico.VoltajeUtiliza;
+        }
+
+        if (tipoProducto == "Libro")
+        {
+            Libro libro = new Libro();
+
+            libro.CodigoProducto = codigoProducto;
+            libro.NombreProducto = nombreProducto;
+            libro.DescripcionProducto = descripcionProducto;
+            libro.PrecioCompra = precioCompra;
+            libro.PrecioVenta = precioVenta;
+            libro.Editorial = editorial;
+            libro.Categoria = categoria;
+            libro.Autor = autor;
+
+            nuevoProducto.Editorial = libro.Editorial;
+            nuevoProducto.Categoria = libro.Categoria;
+            nuevoProducto.Autor = libro.Autor;
+        }
+
+        listaProductos.Add(nuevoProducto);
+
+        jsonService.Guardar(ruta, listaProductos);
+
+        LimpiarCampos();
+    }
+
+    void LimpiarCampos()
+    {
+        tipoProducto = string.Empty;
+
+        codigoProducto = string.Empty;
+        nombreProducto = string.Empty;
+        descripcionProducto = string.Empty;
+        precioCompra = 0;
+        precioVenta = 0;
+
+        fechaVencimiento = DateTime.Now;
+        unidadMedida = string.Empty;
+
+        tiempoGarantia = 0;
+        voltajeUtiliza = string.Empty;
+
+        editorial = string.Empty;
+        categoria = string.Empty;
+        autor = string.Empty;
+    }
+}
